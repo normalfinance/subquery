@@ -54,7 +54,7 @@ const project: StellarProject = {
     endpoint: process.env.ENDPOINT!?.split(",") as string[] | string,
     /* This is a specific Soroban endpoint
       It is only required when you are using a soroban/EventHandler */
-    sorobanEndpoint: "https://soroban-testnet.stellar.org",
+    sorobanEndpoint: process.env.SOROBAN_ENDPOINT!, //  "https://soroban-testnet.stellar.org"
   },
   dataSources: [
     {

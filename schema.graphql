@@ -80,3 +80,19 @@ type Debit @entity {
   account: Account!
   amount: String!
 }
+
+"""
+NormalPool entity: Stores pool data and current reserves
+"""
+type NormalPool @entity {
+  id: ID! # Address
+  idx: String!
+  ledger: Int! @index
+  date: Date! @index
+  tokenA: String! @index
+  tokenB: String! @index
+  reserveA: BigInt!
+  reserveB: BigInt!
+  poolType: String!
+  fee: BigInt!
+}

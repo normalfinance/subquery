@@ -85,3 +85,23 @@ type NormalPool @entity {
   poolType: String!
   fee: BigInt!
 }
+
+type Swap @entity {
+  id: ID!
+}
+
+type NormalBuffer @entity {
+  id: ID!
+}
+
+type NormalInsuranceFund @entity {
+  id: ID!
+}
+
+type OracleRegistry @entity {
+  id: ID!
+}
+
+type IndexFund @entity {
+  id: ID!
+}

@@ -1,7 +1,7 @@
 {
-  "name": "normal",
+  "name": "@normalfinance/subquery",
   "version": "0.0.1",
-  "description": "This project can be use as a starting point for developing your new Stellar Soroban Test Network SubQuery project",
+  "description": "Normal Indexer",
   "main": "dist/index.js",
   "scripts": {
     "build": "subql codegen && subql build",

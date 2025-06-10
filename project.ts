@@ -5,19 +5,22 @@ import {
 } from "@subql/types-stellar";
 import { Horizon } from "@stellar/stellar-sdk";
 
-import * as dotenv from 'dotenv';
-import path from 'path';
+import * as dotenv from "dotenv";
+import path from "path";
 
-const mode = process.env.NODE_ENV || 'production';
+const mode = process.env.NODE_ENV || "production";
 
 // Load the appropriate .env file
-const dotenvPath = path.resolve(__dirname, `.env${mode !== 'production' ? `.${mode}` : ''}`);
+const dotenvPath = path.resolve(
+  __dirname,
+  `.env${mode !== "production" ? `.${mode}` : ""}`
+);
 dotenv.config({ path: dotenvPath });
 
 /* This is your project configuration */
 const project: StellarProject = {
   specVersion: "1.0.0",
-  name: "soroban-testnet-starter",
+  name: "normal-indexer",
   version: "0.0.1",
   runner: {
     node: {
@@ -29,9 +32,8 @@ const project: StellarProject = {
       version: "*",
     },
   },
-  description:
-    "This project can be use as a starting point for developing your new Stellar SubQuery project (testnet)",
-  repository: "https://github.com/subquery/stellar-subql-starter",
+  description: "Normal Indexer",
+  repository: "https://github.com/normalfinance/subquery",
   schema: {
     file: "./schema.graphql",
   },
@@ -49,7 +51,7 @@ const project: StellarProject = {
      * If you use a rate limited endpoint, adjust the --batch-size and --workers parameters
      * These settings can be found in your docker-compose.yaml, they will slow indexing but prevent your project being rate limited
      */
-    endpoint: process.env.ENDPOINT!?.split(',') as string[] | string,
+    endpoint: process.env.ENDPOINT!?.split(",") as string[] | string,
     /* This is a specific Soroban endpoint
       It is only required when you are using a soroban/EventHandler */
     sorobanEndpoint: "https://soroban-testnet.stellar.org",

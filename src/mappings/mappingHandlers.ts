@@ -1,15 +1,10 @@
-import { Account, Credit, Debit, Payment, Transfer } from "../types";
+import { Account, Payment, Transfer } from "../types";
 import {
   StellarOperation,
   StellarEffect,
   SorobanEvent,
 } from "@subql/types-stellar";
-import {
-  AccountCredited,
-  AccountDebited,
-} from "@stellar/stellar-sdk/lib/horizon/types/effects";
-import { Horizon } from "@stellar/stellar-sdk";
-import { Address, xdr } from "soroban-client";
+import { Horizon, Address, xdr } from "@stellar/stellar-sdk";
 
 export async function handleOperation(
   op: StellarOperation<Horizon.HorizonApi.PaymentOperationResponse>
@@ -30,46 +25,6 @@ export async function handleOperation(
   fromAccount.lastSeenLedger = op.ledger!.sequence;
   toAccount.lastSeenLedger = op.ledger!.sequence;
   await Promise.all([fromAccount.save(), toAccount.save(), payment.save()]);
-}
-
-export async function handleCredit(
-  effect: StellarEffect<AccountCredited>
-): Promise<void> {
-  logger.info(`Indexing effect ${effect.id}, type: ${effect.type}`);
-
-  const account = await checkAndGetAccount(
-    effect.account,
-    effect.ledger!.sequence
-  );
-
-  const credit = Credit.create({
-    id: effect.id,
-    accountId: account.id,
-    amount: effect.amount,
-  });
-
-  account.lastSeenLedger = effect.ledger!.sequence;
-  await Promise.all([account.save(), credit.save()]);
-}
-
-export async function handleDebit(
-  effect: StellarEffect<AccountDebited>
-): Promise<void> {
-  logger.info(`Indexing effect ${effect.id}, type: ${effect.type}`);
-
-  const account = await checkAndGetAccount(
-    effect.account,
-    effect.ledger!.sequence
-  );
-
-  const debit = Debit.create({
-    id: effect.id,
-    accountId: account.id,
-    amount: effect.amount,
-  });
-
-  account.lastSeenLedger = effect.ledger!.sequence;
-  await Promise.all([account.save(), debit.save()]);
 }
 
 export async function handleEvent(event: SorobanEvent): Promise<void> {

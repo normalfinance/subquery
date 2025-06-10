@@ -69,17 +69,6 @@ type Payment @entity {
   amount: String!
 }
 
-type Credit @entity {
-  id: ID!
-  account: Account!
-  amount: String!
-}
-
-type Debit @entity {
-  id: ID!
-  account: Account!
-  amount: String!
-}
 
 """
 NormalPool entity: Stores pool data and current reserves

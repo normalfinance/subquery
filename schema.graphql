@@ -2,79 +2,19 @@
 # Add the `@index` or `@index(unique: true)` annotation after any non-key field
 # https://academy.subquery.network/build/graphql.html#indexing-by-non-primary-key-field
 
-type Account @entity {
-  """
-  id field is always required and must look like this
-  """
-  id: ID!
-  """
-  The first block on which we see a transfer involving this account
-  """
-  firstSeenLedger: Int
-  """
-  The most recent block on which we see a transfer involving this account
-  """
-  lastSeenLedger: Int
-  sentTransfers: [Transfer] @derivedFrom(field: "from") # These are virtual properties to help us navigate to the correct foreign key of Transfer
-  receivedTransfers: [Transfer] @derivedFrom(field: "to") # These are virtual properties to help us navigate to the correct foreign key of Transfer
-  sentPayments: [Payment] @derivedFrom(field: "from") # These are virtual properties to help us navigate to the correct foreign key of Payment
-  receivedPayments: [Payment] @derivedFrom(field: "to") # These are virtual properties to help us navigate to the correct foreign key of Payment
-}
-
-type Transfer @entity {
-  """
-  id field is always required and must look like this
-  """
-  id: ID!
-  """
-  The ledger of the transfer
-  """
-  ledger: Int!
-  """
-  The date of the transfer
-  """
-  date: Date!
-  """
-  The contract that was transferred
-  """
-  contract: String!
-  """
-  The account that transfers are made from
-  """
-  from: Account!
-  """
-  The account that transfers are made to
-  """
-  to: Account!
-  """
-  Value that is transferred
-  """
-  value: BigInt!
-}
-
-type Payment @entity {
-  id: ID!
-  txHash: String!
-  """
-  The account that payments are made from
-  """
-  from: Account!
-  """
-  The account that payments are made to
-  """
-  to: Account!
-  """
-  Amount that is transferred
-  """
-  amount: String!
-}
-
+#   ______    ______    _____  ___  ___________  _______        __       ______  ___________  ________
+#  /" _  "\  /    " \  (\"   \|"  \("     _   ")/"      \      /""\     /" _  "\("     _   ")/"       )
+# (: ( \___)// ____  \ |.\\   \    |)__/  \\__/|:        |    /    \   (: ( \___))__/  \\__/(:   \___/
+#  \/ \    /  /    ) :)|: \.   \\  |   \\_ /   |_____/   )   /' /\  \   \/ \        \\_ /    \___  \
+#  //  \ _(: (____/ // |.  \    \. |   |.  |    //      /   //  __'  \  //  \ _     |.  |     __/  \\
+# (:   _) \\        /  |    \    \ |   \:  |   |:  __   \  /   /  \\  \(:   _) \    \:  |    /" \   :)
+#  \_______)\"_____/    \___|\____\)    \__|   |__|  \___)(___/    \___)\_______)    \__|   (_______/
 
 """
-NormalPool entity: Stores pool data and current reserves
+Pool entity: Stores pool data and current reserves
 """
-type NormalPool @entity {
-  id: ID! # Address
+type Pool @entity {
+  id: ID!
   idx: String!
   ledger: Int! @index
   date: Date! @index
@@ -82,26 +22,149 @@ type NormalPool @entity {
   tokenB: String! @index
   reserveA: BigInt!
   reserveB: BigInt!
-  poolType: String!
   fee: BigInt!
 }
 
+"""
+InsuranceFund entity: Stores pool data and current reserves
+"""
+type InsuranceFund @entity {
+  id: ID!
+  idx: String!
+  ledger: Int! @index
+  date: Date! @index
+  token: String! @index
+  totalShares: BigInt!
+  baseRate: BigInt!
+}
+
+#   _______  ___      ___  _______  _____  ___  ___________  ________
+#  /"     "||"  \    /"  |/"     "|(\"   \|"  \("     _   ")/"       )
+# (: ______) \   \  //  /(: ______)|.\\   \    |)__/  \\__/(:   \___/
+#  \/    |    \\  \/. ./  \/    |  |: \.   \\  |   \\_ /    \___  \
+#  // ___)_    \.    //   // ___)_ |.  \    \. |   |.  |     __/  \\
+# (:      "|    \\   /   (:      "||    \    \ |   \:  |    /" \   :)
+#  \_______)     \__/     \_______) \___|\____\)    \__|   (_______/
+
 type Swap @entity {
   id: ID!
+  # tokens...
+  user: String!
+  pool: String!
+  tokenIn: String!
+  tokenOut: String!
+  inAmount: BigInt!
+  outAmount: BigInt!
+
+  timestamp: BigInt!
+  txHash: String!
 }
 
-type NormalBuffer @entity {
+type SwapStrict @entity {
   id: ID!
+  user: String!
+  inputIndex: Int!
+  outputIndex: Int!
+  outputAmount: BigInt!
+  inputMax: BigInt!
+  actualInput: BigInt!
+  timestamp: BigInt!
+  txHash: String!
 }
 
-type NormalInsuranceFund @entity {
+type LiquidityDeposit @entity {
   id: ID!
+  asset: String!
+  user: String!
+  pool: String!
+  amount: BigInt!
+  shareAmount: BigInt!
+  timestamp: BigInt!
+  txHash: String!
 }
 
-type OracleRegistry @entity {
+type LiquidityWithdrawal @entity {
   id: ID!
+  asset: String!
+  user: String!
+  pool: String!
+  amount: BigInt!
+  shareAmount: BigInt!
+  timestamp: BigInt!
+  txHash: String!
 }
 
-type IndexFund @entity {
+type Claim @entity {
   id: ID!
+  user: String!
+  rewardAmount: BigInt!
+  feeAmount: BigInt!
+  timestamp: BigInt!
+  txHash: String!
+}
+
+# Fee Collector
+
+
+
+# IF
+
+type InsuranceFundStake @entity {
+  id: ID!
+  user: String!
+  action: String!
+  amount: BigInt!
+  insuranceVaultAmountBefore: BigInt!
+  ifSharesBefore: BigInt!
+  totalIfSharesBefore: BigInt!
+  ifSharesAfter: BigInt!
+  totalIfSharesAfter: BigInt!
+  timestamp: BigInt!
+  txHash: String!
+}
+
+# Buffer
+
+type BufferDeposit @entity {
+  id: ID!
+  user: String!
+  token: String!
+  amount: BigInt!
+  timestamp: BigInt!
+  txHash: String!
+}
+
+type BufferSync @entity {
+  id: ID!
+  user: String!
+  token: String!
+  timestamp: BigInt!
+  txHash: String!
+}
+
+type BufferSkim @entity {
+  id: ID!
+  user: String!
+  token: String!
+  amount: BigInt!
+  timestamp: BigInt!
+  txHash: String!
+}
+
+type BufferWithdrawSurplus @entity {
+  id: ID!
+  user: String!
+  token: String!
+  amount: BigInt!
+  timestamp: BigInt!
+  txHash: String!
+}
+
+type BufferResolveDeficit @entity {
+  id: ID!
+  user: String!
+  token: String!
+  amount: BigInt!
+  timestamp: BigInt!
+  txHash: String!
 }

@@ -2,8 +2,15 @@ import {
   StellarDatasourceKind,
   StellarHandlerKind,
   StellarProject,
+  SubqlRuntimeHandler,
 } from "@subql/types-stellar";
-import { Horizon } from "@stellar/stellar-sdk";
+import { Horizon, Networks } from "@stellar/stellar-sdk";
+import {
+  getBuffer,
+  getInsuranceFund,
+  getPoolRouter,
+  NETWORK,
+} from "./src/constants";
 
 import * as dotenv from "dotenv";
 import path from "path";
@@ -16,6 +23,85 @@ const dotenvPath = path.resolve(
   `.env${mode !== "production" ? `.${mode}` : ""}`
 );
 dotenv.config({ path: dotenvPath });
+
+// Setup
+const poolRouter = getPoolRouter(process.env.NETWORK as NETWORK);
+const insuranceFund = getInsuranceFund(process.env.NETWORK as NETWORK);
+const buffer = getBuffer(process.env.NETWORK as NETWORK);
+
+const normalHandlers: SubqlRuntimeHandler[] = [
+  {
+    handler: "handleEventAddPool",
+    kind: StellarHandlerKind.Event,
+    filter: {
+      contractId: poolRouter.address,
+      topics: ["add_pool"],
+    },
+  },
+  // Pool
+  {
+    handler: "handleEvent", // deposit liquidity
+    kind: StellarHandlerKind.Event,
+    filter: {
+      topics: ["deposit_liquidity"],
+    },
+  },
+  {
+    handler: "handleEvent", // withdraw liquidity
+    kind: StellarHandlerKind.Event,
+    filter: {
+      topics: ["withdraw_liquidity"],
+    },
+  },
+  {
+    handler: "handleEvent", // swap liquidity
+    kind: StellarHandlerKind.Event,
+    filter: {
+      topics: ["trade"],
+    },
+  },
+  {
+    handler: "handleEvent", // rebalance pool
+    kind: StellarHandlerKind.Event,
+    filter: {
+      topics: ["rebalance"],
+    },
+  },
+  // Insurance Fund
+  {
+    handler: "handleEvent", // deposit liquidity
+    kind: StellarHandlerKind.Event,
+    filter: {
+      contractId: insuranceFund.address,
+      topics: ["if_stake_record"],
+    },
+  },
+  // Buffer
+  {
+    handler: "handleEvent", // buffer deposit
+    kind: StellarHandlerKind.Event,
+    filter: {
+      contractId: buffer.address,
+      topics: ["deposit"],
+    },
+  },
+  {
+    handler: "handleEvent", // buffer sync
+    kind: StellarHandlerKind.Event,
+    filter: {
+      contractId: buffer.address,
+      topics: ["sync"],
+    },
+  },
+  {
+    handler: "handleEvent", // buffer skim
+    kind: StellarHandlerKind.Event,
+    filter: {
+      contractId: buffer.address,
+      topics: ["skim"],
+    },
+  },
+];
 
 /* This is your project configuration */
 const project: StellarProject = {
@@ -42,7 +128,10 @@ const project: StellarProject = {
       'Test SDF Network ; September 2015' for testnet
       'Public Global Stellar Network ; September 2015' for mainnet
       'Test SDF Future Network ; October 2022' for Future Network */
-    chainId: process.env.CHAIN_ID!,
+    chainId:
+      (process.env.NETWORK as NETWORK) === NETWORK.MAINNET
+        ? Networks.PUBLIC
+        : Networks.TESTNET,
     /**
      * These endpoint(s) should be public non-pruned archive node
      * We recommend providing more than one endpoint for improved reliability, performance, and uptime
@@ -51,38 +140,19 @@ const project: StellarProject = {
      * If you use a rate limited endpoint, adjust the --batch-size and --workers parameters
      * These settings can be found in your docker-compose.yaml, they will slow indexing but prevent your project being rate limited
      */
-    endpoint: "https://horizon-testnet.stellar.org", //process.env.ENDPOINT!?.split(",") as string[] | string,
+    endpoint: process.env.HORIZON_ENDPOINT!?.split(",") as string[] | string,
     /* This is a specific Soroban endpoint
       It is only required when you are using a soroban/EventHandler */
-    sorobanEndpoint: "https://soroban-testnet.stellar.org", // process.env.SOROBAN_ENDPOINT!, //
+    sorobanEndpoint: process.env.SOROBAN_ENDPOINT!, //
   },
   dataSources: [
     {
       kind: StellarDatasourceKind.Runtime,
       /* Set this as a logical start block, it might be block 1 (genesis) or when your contract was deployed */
-      startBlock: 228206,
+      startBlock: poolRouter.startBlock,
       mapping: {
         file: "./dist/index.js",
-        handlers: [
-          {
-            handler: "handleOperation",
-            kind: StellarHandlerKind.Operation,
-            filter: {
-              type: Horizon.HorizonApi.OperationResponseType.payment,
-            },
-          },
-          {
-            handler: "handleEvent",
-            kind: StellarHandlerKind.Event,
-            filter: {
-              /* You can optionally specify a smart contract address here
-                contractId: "" */
-              topics: [
-                "transfer", // Topic signature(s) for the events, there can be up to 4
-              ],
-            },
-          },
-        ],
+        handlers: [...normalHandlers],
       },
     },
   ],
